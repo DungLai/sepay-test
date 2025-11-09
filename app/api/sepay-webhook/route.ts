@@ -11,6 +11,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Verify API key if configured
+    const sepayApiKey = process.env.SEPAY_API_KEY;
+    if (sepayApiKey) {
+      // Check for API key in common header locations
+      const authHeader = request.headers.get('authorization');
+      const apiKeyHeader = request.headers.get('x-api-key') || request.headers.get('x-sepay-api-key');
+      
+      // Try to extract API key from Authorization header (Bearer token or direct)
+      const providedKey = authHeader?.startsWith('Bearer ')
+        ? authHeader.substring(7)
+        : authHeader || apiKeyHeader;
+
+      if (!providedKey || providedKey !== sepayApiKey) {
+        return NextResponse.json(
+          { success: false, message: 'Unauthorized: Invalid API key' },
+          { status: 401 }
+        );
+      }
+    }
+
     // Get webhook data from request body
     const data: SePayWebhookData = await request.json();
 

@@ -55,6 +55,10 @@ NEXT_PUBLIC_SEPAY_BANK_CODE=MBBank
 NEXT_PUBLIC_SEPAY_ACCOUNT_NUMBER=0903252427
 NEXT_PUBLIC_SEPAY_ACCOUNT_NAME=Bùi Tấn Việt
 
+# SePay API Key (Required for webhook authentication)
+# Get your API key from SePay dashboard: Cấu hình Công ty > API Access
+SEPAY_API_KEY=your_sepay_api_key_here
+
 # App URL (for webhook)
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
@@ -92,6 +96,7 @@ git push -u origin main
    - `NEXT_PUBLIC_SEPAY_BANK_CODE` (optional)
    - `NEXT_PUBLIC_SEPAY_ACCOUNT_NUMBER` (optional)
    - `NEXT_PUBLIC_SEPAY_ACCOUNT_NAME` (optional)
+   - `SEPAY_API_KEY` (required for webhook authentication)
    - `NEXT_PUBLIC_APP_URL` (your Vercel app URL)
 
 4. Deploy
@@ -106,7 +111,10 @@ git push -u origin main
    - **Chọn sự kiện** (Choose event): Select "Có tiền vào" (Incoming funds)
    - **Chọn điều kiện** (Choose condition): Select your bank account(s)
    - **Gọi đến URL** (Call URL): `https://your-vercel-app.vercel.app/api/sepay-webhook`
-   - **Kiểu chứng thực** (Authentication type): Choose based on your needs
+   - **Kiểu chứng thực** (Authentication type): Configure API key authentication
+     - If using Authorization header: Set header `Authorization: Bearer <your-api-key>`
+     - If using custom header: Set header `X-API-Key: <your-api-key>` or `X-SePay-API-Key: <your-api-key>`
+   - Make sure the API key matches the `SEPAY_API_KEY` in your environment variables
 5. Save the webhook configuration
 
 ## How It Works
