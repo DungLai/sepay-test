@@ -19,10 +19,12 @@ export default function OrderPage() {
   const [paymentStatus, setPaymentStatus] = useState('Unpaid');
   const [loading, setLoading] = useState(true);
 
-  // SePay configuration - these should be set in environment variables
-  const bankCode = 'MBBank';
-  const accountNumber = '0903252427';
-  const accountName = 'Bùi Tấn Việt';
+  // SePay configuration - from environment variables
+  // These values are used in the QR code and payment instructions
+  // Make sure to set them in .env.local or Vercel environment variables
+  const bankCode = process.env.NEXT_PUBLIC_SEPAY_BANK_CODE || 'MBBank';
+  const accountNumber = process.env.NEXT_PUBLIC_SEPAY_ACCOUNT_NUMBER || '0903252427';
+  const accountName = process.env.NEXT_PUBLIC_SEPAY_ACCOUNT_NAME || 'Bùi Tấn Việt';
 
   useEffect(() => {
     // Fetch order details
@@ -109,8 +111,12 @@ export default function OrderPage() {
   }
 
   const orderTotal = typeof order.total === 'string' ? parseFloat(order.total) : order.total;
-  const qrCodeUrl = `https://qr.sepay.vn/img?bank=${bankCode}&acc=${accountNumber}&template=compact&amount=${Math.round(orderTotal)}&des=DH${order.id}`;
   const formattedAmount = new Intl.NumberFormat('vi-VN').format(orderTotal);
+  
+  // Generate QR code URL with account details from environment variables
+  // Ensure all parameters are properly encoded
+  const orderDescription = `DH${order.id}`;
+  const qrCodeUrl = `https://qr.sepay.vn/img?bank=${encodeURIComponent(bankCode)}&acc=${encodeURIComponent(accountNumber)}&template=compact&amount=${Math.round(orderTotal)}&des=${encodeURIComponent(orderDescription)}`;
 
   return (
     <div className="container my-5 px-2">
@@ -185,7 +191,7 @@ export default function OrderPage() {
                 </p>
                 <div className="text-center">
                   <img
-                    src={`https://qr.sepay.vn/assets/img/banklogo/${bankCode}.png`}
+                    src={`https://qr.sepay.vn/assets/img/banklogo/${encodeURIComponent(bankCode)}.png`}
                     className="img-fluid"
                     style={{ maxHeight: '50px' }}
                     alt="Bank Logo"
