@@ -7,10 +7,10 @@ export interface SePayWebhookData {
   transferType: 'in' | 'out';
   transferAmount: number;
   accumulated: number;
-  code: string;
+  code?: string; // Optional - may not always be provided by SePay
   content: string;
-  referenceCode: string;
-  description: string;
+  referenceCode?: string; // Optional - may not always be provided
+  description?: string; // Optional - may not always be provided
 }
 
 // Order Types

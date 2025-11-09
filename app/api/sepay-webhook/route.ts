@@ -70,9 +70,21 @@ export async function POST(request: NextRequest) {
       description: body,
     } = data;
 
+    // Validate transaction content (required field)
+    if (!transactionContent) {
+      return NextResponse.json(
+        { success: false, message: 'Missing required field: content' },
+        { status: 400 }
+      );
+    }
+
     // Determine amount_in and amount_out
     const amountIn = transferType === 'in' ? transferAmount : 0;
     const amountOut = transferType === 'out' ? transferAmount : 0;
+
+    // Handle code field - use referenceCode as fallback if code is null/undefined/empty
+    // The database requires code to be NOT NULL
+    const transactionCode = code || referenceCode || `TXN-${Date.now()}`;
 
     // Insert transaction into database
     const { data: transaction, error: transactionError } = await supabaseAdmin
@@ -84,10 +96,10 @@ export async function POST(request: NextRequest) {
         sub_account: subAccount || null,
         amount_in: amountIn,
         amount_out: amountOut,
-        accumulated,
-        code,
+        accumulated: accumulated || 0,
+        code: transactionCode,
         transaction_content: transactionContent,
-        reference_number: referenceCode,
+        reference_number: referenceCode || null,
         body: body || null,
       })
       .select()
