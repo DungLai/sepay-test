@@ -112,9 +112,9 @@ git push -u origin main
    - **Chọn điều kiện** (Choose condition): Select your bank account(s)
    - **Gọi đến URL** (Call URL): `https://your-vercel-app.vercel.app/api/sepay-webhook`
    - **Kiểu chứng thực** (Authentication type): Configure API key authentication
-     - If using Authorization header: Set header `Authorization: Bearer <your-api-key>`
-     - If using custom header: Set header `X-API-Key: <your-api-key>` or `X-SePay-API-Key: <your-api-key>`
-   - Make sure the API key matches the `SEPAY_API_KEY` in your environment variables
+     - SePay sends the API key in the format: `Authorization: Apikey <your-api-key>`
+     - The webhook endpoint will automatically verify this format
+     - Make sure the API key matches the `SEPAY_API_KEY` in your environment variables
 5. Save the webhook configuration
 
 ## How It Works

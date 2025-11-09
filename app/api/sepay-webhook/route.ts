@@ -12,16 +12,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify API key if configured
+    // SePay sends API key in format: "Authorization": "Apikey YOUR_API_KEY"
     const sepayApiKey = process.env.SEPAY_API_KEY;
     if (sepayApiKey) {
-      // Check for API key in common header locations
       const authHeader = request.headers.get('authorization');
-      const apiKeyHeader = request.headers.get('x-api-key') || request.headers.get('x-sepay-api-key');
       
-      // Try to extract API key from Authorization header (Bearer token or direct)
-      const providedKey = authHeader?.startsWith('Bearer ')
-        ? authHeader.substring(7)
-        : authHeader || apiKeyHeader;
+      if (!authHeader) {
+        return NextResponse.json(
+          { success: false, message: 'Unauthorized: Missing Authorization header' },
+          { status: 401 }
+        );
+      }
+
+      // SePay uses format: "Apikey <api_key>"
+      const apikeyPrefix = 'Apikey ';
+      if (!authHeader.startsWith(apikeyPrefix)) {
+        return NextResponse.json(
+          { success: false, message: 'Unauthorized: Invalid Authorization format. Expected "Apikey <api_key>"' },
+          { status: 401 }
+        );
+      }
+
+      // Extract API key after "Apikey "
+      const providedKey = authHeader.substring(apikeyPrefix.length).trim();
 
       if (!providedKey || providedKey !== sepayApiKey) {
         return NextResponse.json(
