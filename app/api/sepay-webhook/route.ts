@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     const matches = transactionContent.match(regex);
     const orderId = matches ? parseInt(matches[1], 10) : null;
 
-    // If no order ID found, return success but log warning
+    // If no order ID found, return error
     if (!orderId || isNaN(orderId)) {
       return NextResponse.json(
         { success: false, message: `Order not found. Order_id: ${orderId}` },
@@ -127,19 +127,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find order with matching ID, amount, and unpaid status
+    // Find order with matching ID and unpaid status
     const { data: order, error: orderError } = await supabaseAdmin
       .from('tb_orders')
       .select('*')
       .eq('id', orderId)
-      .eq('total', amountIn)
       .eq('payment_status', 'Unpaid')
       .single();
 
     if (orderError || !order) {
       return NextResponse.json(
-        { success: false, message: `Order not found. Order_id: ${orderId}` },
+        { success: false, message: `Order not found or already paid. Order_id: ${orderId}` },
         { status: 404 }
+      );
+    }
+
+    // Verify that the payment amount matches the order total
+    // Allow up to 5000 VND difference to accept payments (handles fees, rounding, or small mistakes)
+    const orderTotal = typeof order.total === 'string' ? parseFloat(order.total) : order.total;
+    const amountDifference = Math.abs(orderTotal - amountIn);
+    const tolerance = 1000; // Allow 5000 VND difference
+
+    if (amountDifference > tolerance) {
+      console.warn(
+        `Payment amount mismatch for order ${orderId}. Expected: ${orderTotal}, Received: ${amountIn}, Difference: ${amountDifference}`
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Payment amount mismatch. Expected: ${orderTotal}, Received: ${amountIn}, Difference: ${amountDifference}`,
+        },
+        { status: 400 }
       );
     }
 
